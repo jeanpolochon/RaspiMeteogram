@@ -8,8 +8,8 @@ mkdir -p ./log
 touch ./log/log\install.txt
 
 echo "Making sure that the OS is up to date"
-apt-get update >>./log/log\install.txt
-apt-get upgrade >>./log/log\install.txt
+apt-get update -y >>./log/log\install.txt
+apt-get upgrade -y >>./log/log\install.txt
 
 echo "Installing the required packages"
 echo "Installing apache web server"
@@ -31,11 +31,11 @@ if [ $SUDO_USER ]; then user=$SUDO_USER; else user=`whoami`; fi
 MAINDB=${user//[^a-zA-Z0-9]/_}
 echo "Mysql user will be '$MAINDB' and database name will be '$MAINDB'"
 
-mysql --execute "CREATE DATABASE ${MAINDB};" >>./log/log\install.txt
-mysql --execute "CREATE USER ${MAINDB}@localhost IDENTIFIED BY '${PASSWDDB}';" >>./log/log\install.txt
+mysql --execute "CREATE DATABASE IF NOT EXISTS ${MAINDB};" >>./log/log\install.txt
+mysql --execute "CREATE USER IF NOT EXISTS ${MAINDB}@localhost IDENTIFIED BY '${PASSWDDB}';" >>./log/log\install.txt
 mysql --execute "GRANT ALL PRIVILEGES ON ${MAINDB}.* TO '${MAINDB}'@'localhost';" >>./log/log\install.txt
 mysql --execute "FLUSH PRIVILEGES;" >>./log/log\install.txt
 
-mysql --execute "CREATE TABLE ${MAINDB}.records(tdate DATE, ttime TIME, temperature DECIMAL(4,1), pressure DECIMAL(5,1), humidity DECIMAL(4,1));" >>./log/log\install.txt
+mysql --execute "CREATE TABLE IF NOT EXISTS ${MAINDB}.records(tdate DATE, ttime TIME, temperature DECIMAL(4,1), pressure DECIMAL(5,1), humidity DECIMAL(4,1));" >>./log/log\install.txt
 
 echo "Database is set up"
