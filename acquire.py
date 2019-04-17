@@ -108,7 +108,7 @@ print "Temperature in Celsius : %.1f C" %cTemp
 print "Barometric Pressure is : %.1f hPa" %pressure
 
 config = ConfigParser.ConfigParser()
-config.readfp(open(r'db.conf'))
+config.readfp(open(r'/home/pi/RaspiMeteogram/db.conf'))
 _username = config.get('db-meteogram', 'username')
 _password = config.get('db-meteogram', 'password')
 _database = config.get('db-meteogram', 'database')

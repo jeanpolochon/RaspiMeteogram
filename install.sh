@@ -7,17 +7,16 @@ fi
 mkdir -p ./log
 touch ./log/log_install.txt
 
-echo "Making sure that the OS is up to date"
-apt-get update -y >>./log/log_install.txt
-apt-get upgrade -y >>./log/log_install.txt
-
 echo "Installing the required packages"
 echo "Installing apache web server"
 apt-get install apache2 -y >>./log/log_install.txt
 echo "Installing PHP"
 apt-get install php -y  >>./log/log_install.txt
 echo "Installing MySQL"
-apt-get install mysql-server python-mysqldb php-mysql -y  >>./log/log_install.txt
+apt-get install mysql-server python-mysqldb php-mysql python.connector -y  >>./log/log_install.txt
+
+echo "Installing packages for the i2c connection"
+apt-get install i2c-tools python-smbus -y >>./log/log_install.txt
 
 echo "Restarting Apache webserver"
 service apache2 restart
@@ -44,3 +43,7 @@ echo password=${PASSWDDB}>>db.conf
 echo database=${MAINDB}>>db.conf
 echo table=records>>db.conf
 echo "Database is set up"
+
+echo "Setting up cron job"
+(sudo crontab -l ; echo "*/1 * * * * /usr/bin/python /home/pi/RaspiMeteogram/acquire.py > /var/log/meteogram.log 2>&1") | sort - | uniq - | sudo crontab -
+echo "Install complete"
