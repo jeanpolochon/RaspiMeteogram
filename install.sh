@@ -45,5 +45,5 @@ echo table=records>>db.conf
 echo "Database is set up"
 
 echo "Setting up cron job"
-(sudo crontab -l ; echo "*/1 * * * * /usr/bin/python /home/pi/RaspiMeteogram/acquire.py > /var/log/meteogram.log 2>&1") | sort - | uniq - | sudo crontab -
+(sudo crontab -l ; echo "*/15 * * * * /usr/bin/python /home/pi/RaspiMeteogram/acquire.py > /var/log/meteogram.log 2>&1") | sort - | uniq - | sudo crontab -
 echo "Install complete"
