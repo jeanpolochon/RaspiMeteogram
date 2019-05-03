@@ -9,7 +9,7 @@ touch ./log/log_install.txt
 
 echo "Installing the required packages"
 echo "Installing apache web server"
-apt-get install apache2 -y >>./log/log_install.txt
+apt-get install apache2 samba -y >>./log/log_install.txt
 echo "Installing PHP"
 apt-get install php -y  >>./log/log_install.txt
 echo "Installing MySQL"
