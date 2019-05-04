@@ -21,6 +21,10 @@ apt-get install i2c-tools python-smbus -y >>./log/log_install.txt
 echo "Restarting Apache webserver"
 service apache2 restart
 
+echo "Setting up the website"
+rm /var/www/html/*
+mv web/* /var/www/html
+
 echo "Setting up the database"
 # create random password
 PASSWDDB="$(openssl rand -base64 12)"
