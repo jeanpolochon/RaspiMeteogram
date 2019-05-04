@@ -22,7 +22,7 @@ echo "Restarting Apache webserver"
 service apache2 restart
 
 echo "Setting up the website"
-rm /var/www/html/*
+rm -r /var/www/html/*
 mv web/* /var/www/html
 
 echo "Setting up the database"
