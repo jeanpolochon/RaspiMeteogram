@@ -8,7 +8,9 @@ from mysql.connector import errorcode
 # Define adresses of the sensors
 HTS221 = 0x5F
 LPS25H = 0x5D   #X-NUCLEO-IKS01A1
+X_NUCLEO_IKS01A1 = 0xBD
 LPS22HB = 0x5D  #X-NUCLEO-IKS01A2 
+X_NUCLEO_IKS01A2 = 0xB1
 
 ####### Read temperature and humidity #######
 def getTemperatureAndHumidity(bus, HTS221):
@@ -67,7 +69,9 @@ def getTemperatureAndHumidity(bus, HTS221):
 
     # Convert the data
     humidity = (data[1] * 256) + data[0]
-    humidity = ((1.0 * H1) - (1.0 * H0)) * (1.0 * humidity - 1.0 * H2) / (1.0 * H3 - 1.0 * H2) + (1.0 * H0)
+    humidity = (((1.0 * H1) - (1.0 * H0)) * (1.0 * humidity - 1.0 * H2) / (1.0 * H3 - 1.0 * H2)) + (1.0 * H0)
+    if humidity>100:
+        humidity=100
     temp = (data[3] * 256) + data[2]
     if temp > 32767 :
         temp -= 65536
@@ -79,33 +83,31 @@ def getTemperatureAndHumidity(bus, HTS221):
 
 ####### Read pressure LPS22HB #######
 def getPressure(bus, LPS22HB):
-    # Wake up the device  (0x84 does not work)
-    bus.write_byte_data(LPS22HB, 0x20, 0x95)
-    
-    # One shot measurement
-    # Useless with 0x94 in 0x20
-    #bus.write_byte_data(LPS22HB, 0x21, 0x01)
+    device = bus.read_byte_data(LPS22HB, 0x0F)
+
+    if (device == X_NUCLEO_IKS01A1) :
+        print "X_NUCLEO_IKS01A1"
+        # Wake up the device 
+        bus.write_byte_data(LPS22HB, 0x20, 0x95)
+
+    elif (device == X_NUCLEO_IKS01A2):
+        print "X_NUCLEO_IKS01A2"
+        # Wake up the device
+        bus.write_byte_data(LPS22HB, 0x10, 0x00)
+        # One shot measurement
+        bus.write_byte_data(LPS22HB, 0x11, 0x01)
 
     while ((bus.read_byte_data(LPS22HB, 0x27) & 0x03) != 3):
         time.sleep(0.1)
 
     # Read data back from 0x28 with Command register, 0x80
-    data = bus.read_i2c_block_data(LPS22HB, 0x28 | 0x80, 5)
+    data = bus.read_i2c_block_data(LPS22HB, 0x28 | 0x80, 3)
 
-    # Put the device back in sleep mode 
-    bus.write_byte_data(LPS22HB, 0x20, 0x00)
 
     # Convert the data to hPa
-    pressure = (data[2] * 65536 + data[1] * 256 + data[0]) / 4096.0
-
-    # Convert the data to degrees. 
-    temperature = data[4] * 256 + data[3]
-    if (temperature & (1 << (16 - 1))) != 0: # if sign bit is set 
-        temperature = temperature - (1 << 16)
-    temperature = 42.5 + (temperature /480)
+    pressure = twos_comp((data[2] * 65536 + data[1] * 256 + data[0])) / 4096.0
 
     print "Barometric Pressure is : %.1f hPa" %pressure
-    print "Temperature is : %.1f C" %temperature
 
     return pressure
 
@@ -143,7 +145,10 @@ def writeToDB(temperature,humidity,pressure):
             cursor.close()
             connection.close()
 
-
+def twos_comp(val):
+    if (val & (1 << (24 - 1))) != 0: # if sign bit is set e.g., 8bit: 128-255
+        val = val - (1 << 24)        # compute negative value
+    return val  
 
 def main():
     # Get I2C bus
